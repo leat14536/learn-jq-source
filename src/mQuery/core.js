@@ -16,12 +16,14 @@ import {
   indexOf,
   slice
 } from './var/arr'
+import {isWindow} from './var/util'
 import {DOMEval} from './core/DOMEval'
 
 const version = '@VERSION'
 const rmsPrefix = /^-ms-/
 const rdashAlpha = /-([a-z])/g
 const rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g
+
 const fcamelCase = function (all, letter) {
   return letter.toUpperCase()
 }
@@ -149,7 +151,7 @@ mQuery.extend({
     return obj === 'function' && typeof obj.nodeType !== 'number'
   },
   isNumeric(obj) {
-    const type = jQuery.type(obj)
+    const type = mQuery.type(obj)
     return (type === 'number' || type === 'string') && !isNaN(obj - parseFloat(obj))
   },
   isPlainObject(obj) {
@@ -174,8 +176,7 @@ mQuery.extend({
       return obj + ''
     }
 
-    return typeof obj === 'object' || typeof obj === 'function' ? class2type[toString.call(obj)] || 'object' :
-      typeof obj
+    return typeof obj === 'object' || typeof obj === 'function' ? class2type[toString.call(obj)] || 'object' : typeof obj
   },
   globalEval(code) {
     DOMEval(code)
@@ -203,13 +204,14 @@ mQuery.extend({
   makeArray(arr, results) {
     const ret = results || []
 
-    if (arr !== null || arr !== undefined) {
+    if (arr != null) {
       if (isArrayLike(Object(arr))) {
         mQuery.merge(ret, typeof arr === 'string' ? [arr] : arr)
       }
     } else {
       push.call(ret, arr)
     }
+    return ret
   },
   inArray(elem, arr, i) {
     return arr == null ? -1 : indexOf.call(arr, elem, i)
@@ -284,7 +286,7 @@ mQuery.extend({
   support: method
 })
 
-jQuery.each('Boolean Number String Function Array Date RegExp Object Error Symbol'.split(' '),
+mQuery.each('Boolean Number String Function Array Date RegExp Object Error Symbol'.split(' '),
   function (i, name) {
     class2type[`[object ${name}]`] = name.toLowerCase()
   })
@@ -292,8 +294,7 @@ jQuery.each('Boolean Number String Function Array Date RegExp Object Error Symbo
 function isArrayLike(obj) {
   const length = !!obj && 'length' in obj && obj.length
   const type = mQuery.type(obj)
-  if (jQuery.isFunction(obj) || isWindow(obj)) return false
-  return type === 'array' || length === 0 ||
-    typeof length === 'number' && length > 0 && ( length - 1 ) in obj
+  if (mQuery.isFunction(obj) || isWindow(obj)) return false
+  /* eslint-disable no-mixed-operators */
+  return type === 'array' || length === 0 || typeof length === 'number' && length > 0 && (length - 1) in obj
 }
-

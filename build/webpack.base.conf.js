@@ -16,6 +16,7 @@ module.exports = {
   resolve: {
     extensions: ['.js'],
     alias: {
+      'external': path.resolve(__dirname, '../external')
     }
   },
   module: {

@@ -1,6 +1,10 @@
 /**
  * Created by Administrator on 2017/10/9 0009.
  */
+import {indexOf} from './var/arr'
+import {nodeName} from './core/nodeName'
+import {rneedsContext, dir, siblings, sibling} from './tranversing/var'
+
 const guaranteedUnique = {
   children: true,
   contents: true,
@@ -23,56 +27,84 @@ export default function (mQuery) {
         }
       })
     },
-    closest() {
-      console.log('=============')
+    closest(selectors, context) {
+      let i, cur
+      const matched = []
+      const targets = typeof selectors !== 'string' && mQuery(selectors)
+      const l = this.length
+      if (!rneedsContext().test(selectors)) {
+        for (i = 0; i < l; i++) {
+          for (cur = this[i]; cur && cur !== context; cur = cur.parentNode) {
+            if (cur.nodeType < 11 &&
+              (targets ? targets.index(cur) > -1 : cur.nodeType === 1 &&
+                mQuery.find.matchesSelector(cur, selectors))) {
+              matched.push(cur)
+              break
+            }
+          }
+        }
+      }
+      return this.pushStack(matched.length > 1 ? mQuery.uniqueSort(matched) : matched)
     },
     index(elem) {
-      console.log('=============')
+      if (!elem) return (this[0] && this[0].parentNode) ? this.first().prevAll().length : -1
+      if (typeof elem === 'string') return indexOf.call(mQuery(elem), this[0])
+      return indexOf.call(this, elem.mQuery ? elem[0] : elem)
     },
     add(selector, context) {
-      console.log('=============')
+      return this.pushStack(mQuery.uniqueSort(
+        mQuery.merge(this.get(), mQuery(selector, context))
+      ))
     },
     addBack(selector) {
-      console.log('=============')
+      return this.add(selector == null ? this.prevObject : this.prevObject.filter(selector))
     }
   })
 
   mQuery.each({
-    parent() {
-      console.log('=============')
+    parent(elem) {
+      const parent = elem.parentNode
+      // documentFragment
+      return parent && parent.nodeType !== 11 ? parent : null
     },
-    parents() {
-      console.log('=============')
+    parents(elem) {
+      return dir(elem, 'parentNode')
     },
-    parentsUntil() {
-      console.log('=============')
+    parentsUntil(elem, i, until) {
+      return dir(elem, 'parentNode', until)
     },
-    next() {
-      console.log('=============')
+    next(elem) {
+      return sibling(elem, 'nextSibling')
     },
-    prev() {
-      console.log('=============')
+    prev(elem) {
+      return sibling(elem, 'previousSibling')
     },
-    nextAll() {
-      console.log('=============')
+    nextAll(elem) {
+      return dir(elem, 'nextSibling')
     },
-    prevAll() {
-      console.log('=============')
+    prevAll(elem) {
+      return dir(elem, 'previousSibling')
     },
-    nextUntil() {
-      console.log('=============')
+    nextUntil(elem, i, until) {
+      return dir(elem, 'nextSibling', until)
     },
-    prevUntil() {
-      console.log('=============')
+    prevUntil(elem, i, until) {
+      return dir(elem, 'previousSibling', until)
     },
-    siblings() {
-      console.log('=============')
+    siblings(elem) {
+      return siblings((elem.parentNode || {}).firstChild, elem)
     },
-    children() {
-      console.log('=============')
+    children(elem) {
+      return siblings(elem.firstChild)
     },
-    contents() {
-      console.log('=============')
+    contents(elem) {
+      if (nodeName(elem, 'iframe')) {
+        return elem.contentDocument
+      }
+      if (nodeName(elem, 'template')) {
+        elem = elem.content || elem
+      }
+      return mQuery.merge([], elem.childNodes)
     }
   }, (name, fn) => {
     mQuery.fn[name] = function (until, selector) {

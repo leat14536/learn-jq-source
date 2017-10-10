@@ -27,13 +27,13 @@ const rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g
 const fcamelCase = function (all, letter) {
   return letter.toUpperCase()
 }
-
-export const mQuery = function (selector, context) {
+export function mQuery (selector, context) {
   /* eslint-disable new-cap */
   return new mQuery.fn.init(selector, context)
 }
 
 mQuery.fn = mQuery.prototype = {
+  mQuery: version,
   constructor: mQuery,
   length: 0,
   toArray() {
@@ -224,6 +224,8 @@ mQuery.extend({
     for (; j < len; j++) {
       first[i++] = second[j]
     }
+
+    first.length = i
     return first
   },
   grep(elems, callback, invert) {
@@ -259,6 +261,7 @@ mQuery.extend({
         }
       }
     }
+    return ret
   },
   guid: 1,
   proxy(fn, context) {

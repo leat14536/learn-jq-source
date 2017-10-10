@@ -1,12 +1,12 @@
 /**
  * Created by Administrator on 2017/10/7 0007.
  */
-import {mQuery} from '../core'
 import {rsingleTag} from './var'
-const rootjQuery = mQuery(document)
 const rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]+))$/
 
 export default function (mQuery) {
+  let rootjQuery
+
   const init = mQuery.fn.init = function (selector, context, root) {
     // HANDLE: $(""), $(null), $(undefined), $(false)
     let match
@@ -74,4 +74,5 @@ export default function (mQuery) {
   }
 
   init.prototype = mQuery.fn
+  rootjQuery = mQuery(document)
 }

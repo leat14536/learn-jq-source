@@ -1,5 +1,6 @@
-import mQuery from './mQuery'
+import mQuery from 'jQuery'
 
-const $root = mQuery('#root')
-
-console.log($root.parent())
+mQuery.Deferred((_, __) => {
+  _.resolve(3)
+}).then(n => console.log(n))
+export default mQuery

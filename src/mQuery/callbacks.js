@@ -1,34 +1,55 @@
 /**
  * Created by Administrator on 2017/10/10 0010.
  */
-import {rnothtmlwhite} from './var/reg'
+import { rnothtmlwhite } from './var/reg'
 
 export default function (mQuery) {
   function createOptions(options) {
     const obj = {}
     mQuery.each(options.match(rnothtmlwhite) || [], function (_, flag) {
-      object[flag] = true
+      obj[flag] = true
     })
     return obj
   }
 
-  function fire() {
-    console.log('fire')
-  }
-
-  mQuery.Callbacks = function (option) {
+  mQuery.Callbacks = function (options) {
     options = typeof options === 'string' ? createOptions(options) : mQuery.extend({}, options)
     let queue = []
     let locked
     let list = []
     let firingIndex = -1
     let memory, firing, fired
+    function fire() {
+      locked = locked || options.once
+      fired = firing = true
+      for (; queue.length; firingIndex = -1) {
+        memory = queue.shift()
+        while (++firingIndex < list.length) {
+          if (list[firingIndex].apply(memory[0], memory[1]) === false && options.stopOnFalse) {
+            firingIndex = list.length
+            memory = false
+          }
+        }
+      }
 
+      if (!options.memory) {
+        memory = false
+      }
+
+      firing = false
+
+      if (locked) {
+        if (memory) list = []
+        else list = ''
+      }
+    }
     const self = {
-      add(list) {
+      add() {
+        // 添加回调
         if (list) {
           if (memory && !firing) {
-            console.log('=============')
+            firingIndex = list.length - 1
+            queue.push(memory)
           }
 
           (function add(args) {
@@ -36,9 +57,9 @@ export default function (mQuery) {
               if (mQuery.isFunction(arg)) {
                 if (!options.unique || !self.has(arg)) {
                   list.push(arg)
-                } else if (arg && arg.length && jQuery.type(arg) !== 'string') {
-                  add(arg)
                 }
+              } else if (arg && arg.length && mQuery.type(arg) !== 'string') {
+                add(arg)
               }
             })
           })(arguments)

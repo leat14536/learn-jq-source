@@ -148,7 +148,7 @@ mQuery.extend({
   isFunction(obj) {
     // 低版本浏览器typeof dom节点可能出错
     // (i.e., `typeof document.createElement( "object" ) === "function"`)
-    return obj === 'function' && typeof obj.nodeType !== 'number'
+    return typeof obj === 'function' && typeof obj.nodeType !== 'number'
   },
   isNumeric(obj) {
     const type = mQuery.type(obj)

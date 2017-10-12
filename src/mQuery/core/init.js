@@ -67,7 +67,7 @@ export default function (mQuery) {
       this.length = 1
       return this
     } else if (mQuery.isFunction(selector)) {
-      return root.ready !== undefined ? root.readt(selector) : selector(mQuery)
+      return root.ready !== undefined ? root.ready(selector) : selector(mQuery)
     }
 
     return mQuery.makeArray(selector, this)

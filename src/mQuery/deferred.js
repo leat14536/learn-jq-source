@@ -1,6 +1,13 @@
-import {slice} from './var/arr'
+import { slice } from './var/arr'
 
 export default function (mQuery) {
+  function Identity(v) {
+    return v
+  }
+  function Thrower(ex) {
+    throw ex
+  }
+
   function adopValue(value, resolve, reject, noValue) {
     let method
     try {
@@ -43,10 +50,135 @@ export default function (mQuery) {
           return promise.then(null, fn)
         },
         pipe() {
-          console.log('pipe')
+          var fns = arguments
+
+          return mQuery.Deferred(function (newDefer) {
+            mQuery.each(tuples, function (i, tuple) {
+
+              var fn = mQuery.isFunction(fns[tuple[4]]) && fns[tuple[4]]
+
+              deferred[tuple[1]](function () {
+                var returned = fn && fn.apply(this, arguments)
+                if (returned && mQuery.isFunction(returned.promise)) {
+                  returned.promise()
+                    .progress(newDefer.notify)
+                    .done(newDefer.resolve)
+                    .fail(newDefer.reject)
+                } else {
+                  newDefer[tuple[0] + 'With'](
+                    this,
+                    fn ? [returned] : arguments
+                  )
+                }
+              })
+            })
+            fns = null
+          }).promise()
         },
-        then() {
-          console.log('then')
+        then(onFulfilled, onRejected, onProgress) {
+          let maxDepth = 0
+
+          function resolve(depth, deferred, handler, special) {
+            return function () {
+              let that = this
+              let args = arguments
+              const mightThrow = function () {
+                if (depth < maxDepth) {
+                  return
+                }
+
+                const returned = handler.apply(that, args)
+
+                if (returned === deferred.promise()) {
+                  throw new TypeError('Thenable self-resolution')
+                }
+
+                const then = returned &&
+                  (typeof returned === 'object' ||
+                    typeof returned === 'function') &&
+                  returned.then
+
+                if (mQuery.isFunction(then)) {
+                  if (special) {
+                    then.call(
+                      returned,
+                      resolve(maxDepth, deferred, Identity, special),
+                      resolve(maxDepth, deferred, Thrower, special)
+                    )
+                  } else {
+                    maxDepth++
+
+                    then.call(
+                      returned,
+                      resolve(maxDepth, deferred, Identity, special),
+                      resolve(maxDepth, deferred, Thrower, special),
+                      resolve(maxDepth, deferred, Identity,
+                        deferred.notifyWith)
+                    )
+                  }
+                } else {
+                  if (handler !== Identity) {
+                    that = undefined
+                    args = [returned]
+                  }
+                  (special || deferred.resolveWith)(that, args)
+                }
+              }
+              const process = special ? mightThrow
+                : function () {
+                  try {
+                    mightThrow()
+                  } catch (e) {
+                    if (mQuery.Deferred.exceptionHook) {
+                      mQuery.Deferred.exceptionHook(e,
+                        process.stackTrace)
+                    }
+
+                    if (depth + 1 >= maxDepth) {
+                      if (handler !== Thrower) {
+                        that = undefined
+                        args = [e]
+                      }
+
+                      deferred.rejectWith(that, args)
+                    }
+                  }
+                }
+              if (depth) {
+                process()
+              } else {
+                if (mQuery.Deferred.getStackHook) {
+                  process.stackTrace = mQuery.Deferred.getStackHook()
+                }
+                window.setTimeout(process)
+              }
+            }
+          }
+
+          return mQuery.Deferred(function (newDefer) {
+            tuples[0][3].add(
+              resolve(
+                0,
+                newDefer,
+                mQuery.isFunction(onProgress) ? onProgress : Identity,
+                newDefer.notifyWith
+              )
+            )
+            tuples[1][3].add(
+              resolve(
+                0,
+                newDefer,
+                mQuery.isFunction(onFulfilled) ? onFulfilled : Identity
+              )
+            )
+            tuples[2][3].add(
+              resolve(
+                0,
+                newDefer,
+                mQuery.isFunction(onRejected) ? onRejected : Thrower
+              )
+            )
+          }).promise()
         },
         promise(obj) {
           return obj != null ? mQuery.extend(obj, promise) : promise

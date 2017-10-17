@@ -13,3 +13,5 @@ export const {toString: fnToString} = hasOwnProperty
 export const ObjectFunctionString = fnToString.call(Object)
 
 export const class2type = {}
+
+export const support = {}

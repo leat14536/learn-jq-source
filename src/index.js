@@ -1,5 +1,2 @@
-import mQuery from 'jQuery'
-mQuery().ready(function() {
-  alert(1)
-})
+import mQuery from './mQuery'
 export default mQuery

@@ -54,7 +54,6 @@ export default function (mQuery) {
 
           return mQuery.Deferred(function (newDefer) {
             mQuery.each(tuples, function (i, tuple) {
-
               var fn = mQuery.isFunction(fns[tuple[4]]) && fns[tuple[4]]
 
               deferred[tuple[1]](function () {

@@ -12,6 +12,9 @@ import deferred from './deferred'
 import exceptionHook from './deferred/exceptionHook'
 import readyException from './core/readyException'
 import ready from './core/ready'
+import queue from './queue'
+import delay from './queue/delay'
+import attributes from './attributes'
 
 init(mQuery) // 加载init
 selector(mQuery) // 加载sizzle模块
@@ -23,5 +26,8 @@ deferred(mQuery) // 异步模块
 exceptionHook(mQuery) // 处理错误的模块
 readyException(mQuery) // ready错误处理
 ready(mQuery) // ready方法
+queue(mQuery) // queue 系列方法
+delay(mQuery) // delay
+attributes(mQuery)
 
 export default mQuery

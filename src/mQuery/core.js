@@ -197,6 +197,7 @@ mQuery.extend({
         if (callback.call(obj[i], i, obj[i]) === false) break
       }
     }
+    return obj
   },
   trim(text) {
     return text == null ? '' : (text + '').replace(rtrim, '')
